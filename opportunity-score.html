@@ -22,12 +22,23 @@
             --bg-subtle: #fafafa;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            height: 100%;
+        }
         body {
             font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg);
             color: var(--text);
-            padding: 12px 14px;
+            padding: 14px 16px;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         /* ─── Header ─── */
@@ -35,7 +46,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 10px;
+            margin-bottom: 14px;
         }
         .header-icon {
             width: 18px;
@@ -73,19 +84,20 @@
         .score-section {
             display: flex;
             align-items: flex-start;
-            gap: 12px;
-            margin-bottom: 8px;
+            gap: 14px;
+            margin-bottom: 12px;
+            flex: 1;
         }
         .score-left {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             flex-shrink: 0;
         }
         .gauge-wrapper {
             position: relative;
-            width: 64px;
-            height: 64px;
+            width: 72px;
+            height: 72px;
             flex-shrink: 0;
         }
         .gauge-svg {
@@ -109,20 +121,20 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 700;
             line-height: 1;
             color: var(--text);
         }
 
         .score-meta {
-            padding-top: 2px;
+            padding-top: 4px;
         }
         .grade-label {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
             color: var(--text);
-            margin-bottom: 2px;
+            margin-bottom: 3px;
         }
         .trend-label {
             font-size: 13px;
@@ -141,7 +153,7 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            min-height: 64px;
+            min-height: 72px;
         }
         .trend-arrow.up { color: var(--accent-green); }
         .trend-arrow.down { color: var(--accent-red); }
@@ -155,7 +167,7 @@
             display: flex;
             align-items: flex-start;
             gap: 6px;
-            padding: 2px 0;
+            padding: 3px 0;
             font-size: 13px;
             color: var(--text);
             line-height: 1.4;
@@ -194,7 +206,7 @@
         /* ─── Details Link ─── */
         .details-link {
             text-align: center;
-            margin-bottom: 6px;
+            margin-bottom: 10px;
         }
         .details-link a {
             font-size: 13px;
@@ -212,6 +224,7 @@
             display: flex;
             align-items: center;
             gap: 4px;
+            margin-top: auto;
         }
         .scored-on .info-badge {
             display: inline-flex;
