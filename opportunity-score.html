@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Opportunity Score</title>
+    <style>
+        :root {
+            --primary: #0078d4;
+            --accent-green: #107c10;
+            --accent-green-light: #dff6dd;
+            --accent-orange: #ca5010;
+            --accent-orange-light: #fff4ce;
+            --accent-red: #d13438;
+            --accent-red-light: #fde7e9;
+            --accent-blue-light: #deecf9;
+            --text: #242424;
+            --text-secondary: #616161;
+            --text-tertiary: #9e9e9e;
+            --border: #e0e0e0;
+            --bg: #ffffff;
+            --bg-subtle: #fafafa;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            min-height: 100vh;
+        }
+
+        /* ─── Header ─── */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .header-icon {
+            width: 20px;
+            height: 20px;
+            opacity: 0.7;
+        }
+        .header h2 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+        .header .info-icon {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 1.5px solid var(--text-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: var(--text-tertiary);
+            cursor: help;
+            flex-shrink: 0;
+        }
+        .header .menu-dots {
+            margin-left: auto;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            font-size: 16px;
+            letter-spacing: 2px;
+        }
+
+        /* ─── Score Display ─── */
+        .score-section {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .gauge-wrapper {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            flex-shrink: 0;
+        }
+        .gauge-svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+        .gauge-bg {
+            fill: none;
+            stroke: #e8e8e8;
+            stroke-width: 8;
+        }
+        .gauge-fill {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease-out, stroke 0.5s ease;
+        }
+        .gauge-score {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 1;
+            color: var(--text);
+        }
+
+        .score-meta {
+            padding-top: 8px;
+        }
+        .grade-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+        .trend-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .trend-arrow {
+            font-size: 12px;
+        }
+        .trend-arrow.up { color: var(--accent-green); }
+        .trend-arrow.down { color: var(--accent-red); }
+        .trend-arrow.steady { color: var(--text-secondary); }
+
+        /* ─── Insights ─── */
+        .insights {
+            margin-bottom: 16px;
+        }
+        .insight-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 6px 0;
+            font-size: 13px;
+            color: var(--text);
+            line-height: 1.4;
+        }
+        .insight-icon {
+            flex-shrink: 0;
+            width: 0;
+            height: 0;
+            margin-top: 4px;
+        }
+        .insight-icon.positive {
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 10px solid var(--accent-green);
+        }
+        .insight-icon.negative {
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 10px solid var(--accent-red);
+        }
+        .insight-text .info-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 1.5px solid var(--text-tertiary);
+            font-size: 9px;
+            color: var(--text-tertiary);
+            margin-left: 4px;
+            vertical-align: middle;
+            cursor: help;
+        }
+
+        /* ─── Details Link ─── */
+        .details-link {
+            text-align: center;
+            margin-bottom: 14px;
+        }
+        .details-link a {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .details-link a:hover { text-decoration: underline; }
+
+        /* ─── Scored On ─── */
+        .scored-on {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .scored-on .info-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            border: 1.5px solid var(--text-tertiary);
+            font-size: 8px;
+            color: var(--text-tertiary);
+            cursor: help;
+        }
+
+        /* ─── Loading ─── */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            color: var(--text-secondary);
+            gap: 12px;
+        }
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ─── Error ─── */
+        .error-state {
+            text-align: center;
+            padding: 24px 16px;
+            color: var(--text-secondary);
+        }
+        .error-state .error-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        .error-state p {
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* ─── No Data ─── */
+        .no-data {
+            text-align: center;
+            padding: 32px 16px;
+            color: var(--text-secondary);
+        }
+        .no-data .icon { font-size: 28px; margin-bottom: 8px; }
+        .no-data p { font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <span>Loading opportunity score...</span>
+    </div>
+
+    <div id="content" style="display:none;">
+        <div class="header">
+            <img class="header-icon" src="https://github.com/microsoft/fluentui-system-icons/raw/main/assets/Edit/SVG/ic_fluent_edit_48_regular.svg" alt="" />
+            <h2>Opportunity score</h2>
+            <span class="info-icon" title="Score calculated by Dynamics 365 Sales Insights predictive scoring model">i</span>
+            <span class="menu-dots">&#8943;</span>
+        </div>
+
+        <div class="score-section">
+            <div class="gauge-wrapper">
+                <svg class="gauge-svg" viewBox="0 0 100 100">
+                    <circle class="gauge-bg" cx="50" cy="50" r="42" />
+                    <circle id="gauge-fill" class="gauge-fill" cx="50" cy="50" r="42"
+                        stroke-dasharray="263.9" stroke-dashoffset="263.9" />
+                </svg>
+                <div id="gauge-score" class="gauge-score">--</div>
+            </div>
+            <div class="score-meta">
+                <div id="grade-label" class="grade-label">--</div>
+                <div id="trend-label" class="trend-label">
+                    <span id="trend-arrow" class="trend-arrow"></span>
+                    <span id="trend-text"></span>
+                </div>
+            </div>
+        </div>
+
+        <div id="insights" class="insights"></div>
+
+        <div class="details-link">
+            <a id="details-btn" href="javascript:void(0)">Details</a>
+        </div>
+
+        <div id="scored-on" class="scored-on"></div>
+    </div>
+
+    <div id="error" class="error-state" style="display:none;">
+        <div class="error-icon">&#9888;</div>
+        <p id="error-msg">Unable to load opportunity score.</p>
+    </div>
+
+    <div id="no-data" class="no-data" style="display:none;">
+        <div class="icon">&#128202;</div>
+        <p>No predictive score available for this opportunity.</p>
+    </div>
+
+    <script>
+        // ─── Globals ─────────────────────────────────────────
+        let opportunityId = null;
+        let crmBaseUrl = "";
+
+        // ─── Xrm Context ────────────────────────────────────
+        function getXrmContext() {
+            if (window.parent && window.parent.Xrm && window.parent.Xrm.Page) return window.parent.Xrm;
+            if (window.parent && window.parent.Xrm && window.parent.Xrm.Utility) return window.parent.Xrm;
+            return null;
+        }
+
+        function getOpportunityIdFromContext() {
+            try {
+                const xrm = getXrmContext();
+                if (xrm && xrm.Page && xrm.Page.data && xrm.Page.data.entity) {
+                    const id = xrm.Page.data.entity.getId();
+                    if (id) return id.replace(/[{}]/g, "");
+                }
+            } catch (e) { /* ignore */ }
+
+            const params = new URLSearchParams(window.location.search);
+            const dataParam = params.get("data");
+            if (dataParam) {
+                try {
+                    const parsed = JSON.parse(decodeURIComponent(dataParam));
+                    if (parsed.id) return parsed.id.replace(/[{}]/g, "");
+                } catch (e) { /* ignore */ }
+            }
+            const idParam = params.get("id");
+            if (idParam) return idParam.replace(/[{}]/g, "");
+
+            try {
+                const parentUrl = window.parent.location.href;
+                const match = parentUrl.match(/id=([0-9a-f-]{36})/i);
+                if (match) return match[1];
+            } catch (e) { /* cross-origin */ }
+
+            return null;
+        }
+
+        function getCrmBaseUrl() {
+            try {
+                const xrm = getXrmContext();
+                if (xrm && xrm.Utility && xrm.Utility.getGlobalContext)
+                    return xrm.Utility.getGlobalContext().getClientUrl();
+                if (xrm && xrm.Page && xrm.Page.context)
+                    return xrm.Page.context.getClientUrl();
+            } catch (e) { /* ignore */ }
+            const origin = window.location.origin;
+            if (origin.includes(".dynamics.com") || origin.includes(".crm")) return origin;
+            return "https://hyagom.crm.dynamics.com";
+        }
+
+        // ─── API Helpers ─────────────────────────────────────
+        async function crmApiFetch(url) {
+            const apiBase = crmBaseUrl + "/api/data/v9.2";
+            const res = await fetch(apiBase + url, {
+                headers: {
+                    "Accept": "application/json",
+                    "OData-MaxVersion": "4.0",
+                    "OData-Version": "4.0",
+                    "Content-Type": "application/json",
+                    "Prefer": 'odata.include-annotations="*"',
+                },
+            });
+            if (!res.ok) {
+                const err = await res.text();
+                throw new Error("API error " + res.status + ": " + err);
+            }
+            if (res.status === 204) return null;
+            return res.json();
+        }
+
+        // ─── Field Name Mapping ──────────────────────────────
+        const FIELD_DISPLAY_MAP = {
+            "address1_stateorprovince": "Address 1: State/Province",
+            "address1_city": "Address 1: City",
+            "address1_country": "Address 1: Country",
+            "address1_line1": "Address 1: Street",
+            "address1_postalcode": "Address 1: ZIP/Postal Code",
+            "opportunityratingcode": "Rating",
+            "stepname": "Sales Stage",
+            "estimatedclosedate": "Est. Close Date",
+            "estimatedvalue": "Est. Revenue",
+            "budgetamount": "Budget Amount",
+            "closeprobability": "Close Probability",
+            "decisionmaker": "Decision Maker",
+            "need": "Need",
+            "purchasetimeframe": "Purchase Timeframe",
+            "purchaseprocess": "Purchase Process",
+            "description": "Description",
+            "currentsituation": "Current Situation",
+            "customerneed": "Customer Need",
+            "proposedsolution": "Proposed Solution",
+        };
+
+        const OPTION_SET_MAP = {
+            "opportunityratingcode": { 1: "Hot", 2: "Warm", 3: "Cold" },
+        };
+
+        function getInsightText(reason) {
+            const fieldName = reason.field?.name || "Unknown field";
+            const displayName = FIELD_DISPLAY_MAP[fieldName] || fieldName.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+            const value = reason.value?.generic;
+            let valueText = "";
+
+            if (value) {
+                if (value.literal) {
+                    valueText = " is " + value.literal;
+                } else if (value.cdsOption1 !== undefined) {
+                    const optMap = OPTION_SET_MAP[fieldName];
+                    valueText = " is " + (optMap ? optMap[value.cdsOption1] || value.cdsOption1 : value.cdsOption1);
+                } else if (Object.keys(value).length === 0) {
+                    valueText = " is blank";
+                }
+            }
+
+            return displayName + valueText;
+        }
+
+        // ─── Gauge Colors ────────────────────────────────────
+        function getGradeColor(grade) {
+            switch (grade) {
+                case 0: return "var(--accent-green)";     // Grade A
+                case 1: return "#6bb700";                  // Grade B
+                case 2: return "var(--accent-orange)";     // Grade C
+                case 3: return "var(--accent-red)";        // Grade D
+                default: return "var(--text-tertiary)";
+            }
+        }
+
+        function getGradeText(grade) {
+            switch (grade) {
+                case 0: return "Grade A";
+                case 1: return "Grade B";
+                case 2: return "Grade C";
+                case 3: return "Grade D";
+                default: return "N/A";
+            }
+        }
+
+        function getTrendInfo(trend) {
+            switch (trend) {
+                case 0: return { arrow: "&#9650;", text: "Improving", css: "up" };
+                case 1: return { arrow: "&#8594;", text: "Steady", css: "steady" };
+                case 2: return { arrow: "&#9660;", text: "Declining", css: "down" };
+                default: return { arrow: "&#8722;", text: "Not enough info", css: "steady" };
+            }
+        }
+
+        // ─── Render ──────────────────────────────────────────
+        function renderScore(scoreData) {
+            const score = scoreData.msdyn_score;
+            const grade = scoreData.msdyn_grade;
+            const trend = scoreData.msdyn_scoretrend;
+            const scoredOn = scoreData["msdyn_scoredon@OData.Community.Display.V1.FormattedValue"] || "";
+            const color = getGradeColor(grade);
+
+            // Animate gauge
+            const circumference = 2 * Math.PI * 42; // ~263.9
+            const offset = circumference - (score / 100) * circumference;
+            const gaugeFill = document.getElementById("gauge-fill");
+            gaugeFill.style.stroke = color;
+            setTimeout(() => { gaugeFill.style.strokeDashoffset = offset; }, 50);
+
+            // Score number
+            document.getElementById("gauge-score").textContent = score;
+
+            // Grade
+            const gradeEl = document.getElementById("grade-label");
+            gradeEl.textContent = getGradeText(grade);
+            gradeEl.style.color = color;
+
+            // Trend
+            const trendInfo = getTrendInfo(trend);
+            document.getElementById("trend-arrow").innerHTML = trendInfo.arrow;
+            document.getElementById("trend-arrow").className = "trend-arrow " + trendInfo.css;
+            document.getElementById("trend-text").textContent = trendInfo.text;
+
+            // Insights
+            const insightsContainer = document.getElementById("insights");
+            insightsContainer.innerHTML = "";
+            try {
+                const reasons = JSON.parse(scoreData.msdyn_scorereasons);
+                if (reasons.explanation) {
+                    reasons.explanation.forEach(item => {
+                        if (!item.reason) return; // skip info nodes
+                        const isPositive = item.reason.influence === 1;
+                        const text = getInsightText(item.reason);
+                        const row = document.createElement("div");
+                        row.className = "insight-row";
+                        row.innerHTML = `
+                            <span class="insight-icon ${isPositive ? "positive" : "negative"}"></span>
+                            <span class="insight-text">${escapeHtml(text)}<span class="info-badge" title="${isPositive ? "Positive influence on score" : "Negative influence on score"}">i</span></span>
+                        `;
+                        insightsContainer.appendChild(row);
+                    });
+                }
+            } catch (e) { /* no reasons */ }
+
+            // Scored on
+            if (scoredOn) {
+                document.getElementById("scored-on").innerHTML =
+                    `This opportunity was scored on ${escapeHtml(scoredOn)}. <span class="info-badge" title="Score is recalculated periodically by the predictive scoring model">i</span>`;
+            }
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement("div");
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ─── Main ────────────────────────────────────────────
+        async function init() {
+            crmBaseUrl = getCrmBaseUrl();
+            opportunityId = getOpportunityIdFromContext();
+
+            if (!opportunityId) {
+                showError("Could not determine the opportunity ID from the form context.");
+                return;
+            }
+
+            try {
+                // Step 1: Get the predictive score ID from the opportunity
+                const opp = await crmApiFetch(
+                    `/opportunities(${opportunityId})?$select=_msdyn_predictivescoreid_value`
+                );
+
+                let scoreData = null;
+
+                if (opp._msdyn_predictivescoreid_value) {
+                    // Step 2: Fetch from predictive scores entity
+                    scoreData = await crmApiFetch(
+                        `/msdyn_predictivescores(${opp._msdyn_predictivescoreid_value})`
+                    );
+                } else {
+                    // Fallback: search by entity ID
+                    const ps = await crmApiFetch(
+                        `/msdyn_predictivescores?$filter=msdyn_entityid eq '${opportunityId}' and msdyn_entitytype eq 'opportunity'&$top=1&$orderby=msdyn_scoredon desc`
+                    );
+                    if (ps.value && ps.value.length > 0) {
+                        scoreData = ps.value[0];
+                    }
+                }
+
+                if (!scoreData || scoreData.msdyn_score === null || scoreData.msdyn_score === undefined) {
+                    showNoData();
+                    return;
+                }
+
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("content").style.display = "block";
+                renderScore(scoreData);
+
+            } catch (err) {
+                showError("Error loading score: " + err.message);
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("error").style.display = "block";
+            document.getElementById("error-msg").textContent = msg;
+        }
+
+        function showNoData() {
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("no-data").style.display = "block";
+        }
+
+        // Start
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>

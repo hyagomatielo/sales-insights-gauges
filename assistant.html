@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Assistant</title>
+    <style>
+        :root {
+            --primary: #0078d4;
+            --accent-green: #107c10;
+            --accent-green-light: #dff6dd;
+            --accent-orange: #ca5010;
+            --accent-orange-light: #fff4ce;
+            --accent-red: #d13438;
+            --accent-red-light: #fde7e9;
+            --text: #242424;
+            --text-secondary: #616161;
+            --text-tertiary: #9e9e9e;
+            --border: #e0e0e0;
+            --bg: #ffffff;
+            --bg-subtle: #fafafa;
+            --bg-hover: #f5f5f5;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            min-height: 100vh;
+        }
+
+        /* ─── Header ─── */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .header-icon {
+            width: 20px;
+            height: 20px;
+            opacity: 0.7;
+        }
+        .header h2 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* ─── Section Label ─── */
+        .section-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+
+        /* ─── Notification Summary ─── */
+        .notification-summary {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+            margin-bottom: 4px;
+        }
+        .notification-summary:hover {
+            background: var(--bg-hover);
+        }
+        .bell-icon {
+            position: relative;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .bell-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--text-secondary);
+        }
+        .notification-count {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .chevron {
+            margin-left: auto;
+            font-size: 12px;
+            color: var(--text-tertiary);
+            transition: transform 0.2s;
+        }
+        .chevron.open { transform: rotate(180deg); }
+
+        /* ─── Cards List ─── */
+        .cards-list {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.3s ease;
+        }
+        .cards-list.open {
+            max-height: 800px;
+        }
+        .card-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }
+        .card-item:hover {
+            background: var(--bg-hover);
+        }
+        .card-item:last-child {
+            border-bottom: none;
+        }
+        .card-type-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .card-type-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+        .card-type-icon.warning {
+            background: var(--accent-red-light);
+        }
+        .card-type-icon.warning svg { fill: var(--accent-red); }
+        .card-type-icon.task {
+            background: var(--accent-orange-light);
+        }
+        .card-type-icon.task svg { fill: var(--accent-orange); }
+        .card-type-icon.info {
+            background: var(--accent-green-light);
+        }
+        .card-type-icon.info svg { fill: var(--accent-green); }
+        .card-type-icon.general {
+            background: #deecf9;
+        }
+        .card-type-icon.general svg { fill: var(--primary); }
+
+        .card-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .card-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 2px;
+            line-height: 1.3;
+        }
+        .card-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        .card-opp-name {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+        .card-opp-name .opp-icon {
+            width: 14px;
+            height: 14px;
+            opacity: 0.5;
+        }
+
+        /* ─── Loading / Error / Empty ─── */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 160px;
+            color: var(--text-secondary);
+            gap: 12px;
+        }
+        .spinner {
+            width: 28px;
+            height: 28px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-state {
+            text-align: center;
+            padding: 24px 16px;
+            color: var(--text-secondary);
+        }
+        .error-state .error-icon { font-size: 28px; margin-bottom: 8px; }
+        .error-state p { font-size: 13px; line-height: 1.5; }
+
+        .empty-state {
+            text-align: center;
+            padding: 24px 16px;
+            color: var(--text-tertiary);
+        }
+        .empty-state .icon { font-size: 24px; margin-bottom: 8px; }
+        .empty-state p { font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <span>Loading assistant...</span>
+    </div>
+
+    <div id="content" style="display:none;">
+        <div class="header">
+            <img class="header-icon" src="https://github.com/microsoft/fluentui-system-icons/raw/main/assets/Edit/SVG/ic_fluent_edit_48_regular.svg" alt="" />
+            <h2>Assistant</h2>
+        </div>
+
+        <div class="section-label">Notifications</div>
+
+        <div class="notification-summary" id="notif-toggle">
+            <div class="bell-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7v3.528L3.658 14.97A1.25 1.25 0 0 0 4.633 16.5h4.631a2.75 2.75 0 1 0 5.472 0h4.631a1.25 1.25 0 0 0 .975-1.53L19 12.528V9a7 7 0 0 0-7-7Zm1.25 14.5H10.75a1.25 1.25 0 1 0 2.5 0ZM6.5 9a5.5 5.5 0 1 1 11 0v3.528c0 .124.018.247.054.366l1.077 3.606H5.37l1.077-3.606A1.25 1.25 0 0 0 6.5 12.528V9Z"/></svg>
+            </div>
+            <span id="notif-count" class="notification-count">0 reminders</span>
+            <span id="chevron" class="chevron">&#9660;</span>
+        </div>
+
+        <div id="cards-list" class="cards-list"></div>
+    </div>
+
+    <div id="error" class="error-state" style="display:none;">
+        <div class="error-icon">&#9888;</div>
+        <p id="error-msg">Unable to load assistant data.</p>
+    </div>
+
+    <div id="empty" class="empty-state" style="display:none;">
+        <div class="icon">&#128276;</div>
+        <p>No notifications for this opportunity.</p>
+    </div>
+
+    <script>
+        // ─── Globals ─────────────────────────────────────────
+        let opportunityId = null;
+        let crmBaseUrl = "";
+
+        // ─── Xrm Context ────────────────────────────────────
+        function getXrmContext() {
+            if (window.parent && window.parent.Xrm && window.parent.Xrm.Page) return window.parent.Xrm;
+            if (window.parent && window.parent.Xrm && window.parent.Xrm.Utility) return window.parent.Xrm;
+            return null;
+        }
+
+        function getOpportunityIdFromContext() {
+            try {
+                const xrm = getXrmContext();
+                if (xrm && xrm.Page && xrm.Page.data && xrm.Page.data.entity) {
+                    const id = xrm.Page.data.entity.getId();
+                    if (id) return id.replace(/[{}]/g, "");
+                }
+            } catch (e) { /* ignore */ }
+
+            const params = new URLSearchParams(window.location.search);
+            const dataParam = params.get("data");
+            if (dataParam) {
+                try {
+                    const parsed = JSON.parse(decodeURIComponent(dataParam));
+                    if (parsed.id) return parsed.id.replace(/[{}]/g, "");
+                } catch (e) { /* ignore */ }
+            }
+            const idParam = params.get("id");
+            if (idParam) return idParam.replace(/[{}]/g, "");
+
+            try {
+                const parentUrl = window.parent.location.href;
+                const match = parentUrl.match(/id=([0-9a-f-]{36})/i);
+                if (match) return match[1];
+            } catch (e) { /* cross-origin */ }
+
+            return null;
+        }
+
+        function getCrmBaseUrl() {
+            try {
+                const xrm = getXrmContext();
+                if (xrm && xrm.Utility && xrm.Utility.getGlobalContext)
+                    return xrm.Utility.getGlobalContext().getClientUrl();
+                if (xrm && xrm.Page && xrm.Page.context)
+                    return xrm.Page.context.getClientUrl();
+            } catch (e) { /* ignore */ }
+            const origin = window.location.origin;
+            if (origin.includes(".dynamics.com") || origin.includes(".crm")) return origin;
+            return "https://hyagom.crm.dynamics.com";
+        }
+
+        // ─── API Helpers ─────────────────────────────────────
+        async function crmApiFetch(url) {
+            const apiBase = crmBaseUrl + "/api/data/v9.2";
+            const res = await fetch(apiBase + url, {
+                headers: {
+                    "Accept": "application/json",
+                    "OData-MaxVersion": "4.0",
+                    "OData-Version": "4.0",
+                    "Content-Type": "application/json",
+                    "Prefer": 'odata.include-annotations="*"',
+                },
+            });
+            if (!res.ok) {
+                const err = await res.text();
+                throw new Error("API error " + res.status + ": " + err);
+            }
+            if (res.status === 204) return null;
+            return res.json();
+        }
+
+        // ─── Card Type Mapping ───────────────────────────────
+        const CARD_TYPE_MAP = {
+            1: { title: "Meeting today", icon: "calendar", css: "info" },
+            2: { title: "Meeting tomorrow", icon: "calendar", css: "info" },
+            3: { title: "Email opened", icon: "email", css: "info" },
+            4: { title: "Email reminder", icon: "email", css: "general" },
+            5: { title: "File activity", icon: "file", css: "general" },
+            6: { title: "Issue detected", icon: "warning", css: "warning" },
+            7: { title: "Task due", icon: "task", css: "task" },
+            8: { title: "Internal mention", icon: "mention", css: "general" },
+            9: { title: "Customer interaction", icon: "contact", css: "info" },
+            10: { title: "No activity", icon: "warning", css: "warning" },
+            11: { title: "Note", icon: "note", css: "general" },
+            12: { title: "Opportunity closing", icon: "warning", css: "warning" },
+            13: { title: "Competitor mentioned", icon: "warning", css: "warning" },
+            14: { title: "Stakeholder change", icon: "contact", css: "task" },
+            15: { title: "Proposal feedback", icon: "note", css: "info" },
+            16: { title: "Opportunity's close date has passed", icon: "warning", css: "warning" },
+            17: { title: "Follow-up needed", icon: "task", css: "task" },
+            18: { title: "Contract expiring", icon: "warning", css: "warning" },
+            19: { title: "Relationship insight", icon: "contact", css: "info" },
+            20: { title: "Notification", icon: "notice", css: "general" },
+        };
+
+        function getCardTypeInfo(cardType) {
+            return CARD_TYPE_MAP[cardType] || { title: "Notification", icon: "notice", css: "general" };
+        }
+
+        function getCardIcon(iconType) {
+            switch (iconType) {
+                case "warning":
+                    return '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-.5 5.75a.75.75 0 0 1 1.5 0v5a.75.75 0 0 1-1.5 0v-5ZM12 17.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/></svg>';
+                case "task":
+                    return '<svg viewBox="0 0 24 24"><path d="M6.75 3A3.75 3.75 0 0 0 3 6.75v10.5A3.75 3.75 0 0 0 6.75 21h10.5A3.75 3.75 0 0 0 21 17.25V6.75A3.75 3.75 0 0 0 17.25 3H6.75Zm9.03 6.78-4.5 4.5a.75.75 0 0 1-1.06 0l-2-2a.75.75 0 1 1 1.06-1.06l1.47 1.47 3.97-3.97a.75.75 0 1 1 1.06 1.06Z"/></svg>';
+                case "calendar":
+                    return '<svg viewBox="0 0 24 24"><path d="M17.75 3A3.25 3.25 0 0 1 21 6.25v11.5A3.25 3.25 0 0 1 17.75 21H6.25A3.25 3.25 0 0 1 3 17.75V6.25A3.25 3.25 0 0 1 6.25 3h11.5ZM19.5 8.5h-15v9.25c0 .966.784 1.75 1.75 1.75h11.5a1.75 1.75 0 0 0 1.75-1.75V8.5Z"/></svg>';
+                case "email":
+                    return '<svg viewBox="0 0 24 24"><path d="M5.25 4h13.5A3.25 3.25 0 0 1 22 7.25v9.5A3.25 3.25 0 0 1 18.75 20H5.25A3.25 3.25 0 0 1 2 16.75v-9.5A3.25 3.25 0 0 1 5.25 4Zm13.5 1.5H5.25A1.75 1.75 0 0 0 3.5 7.25v.373l8.5 4.647 8.5-4.647V7.25a1.75 1.75 0 0 0-1.75-1.75Zm1.75 3.981-8.5 4.648-8.5-4.648v7.269c0 .966.784 1.75 1.75 1.75h13.5a1.75 1.75 0 0 0 1.75-1.75V9.481Z"/></svg>';
+                case "contact":
+                    return '<svg viewBox="0 0 24 24"><path d="M17.754 14a2.249 2.249 0 0 1 2.25 2.249v.918a2.75 2.75 0 0 1-.513 1.599C17.945 20.929 15.42 22 12 22c-3.422 0-5.945-1.072-7.487-3.237a2.75 2.75 0 0 1-.51-1.595v-.92a2.249 2.249 0 0 1 2.249-2.25h11.501ZM12 2.004a5 5 0 1 1 0 10 5 5 0 0 1 0-10Z"/></svg>';
+                default:
+                    return '<svg viewBox="0 0 24 24"><path d="M12 1.999c5.524 0 10.002 4.478 10.002 10.002 0 5.523-4.478 10.001-10.002 10.001-5.524 0-10.002-4.478-10.002-10.001C1.998 6.477 6.476 1.999 12 1.999Zm0 8.5a1 1 0 0 0-.993.884L11 11.5v5.003l.007.117a1 1 0 0 0 1.987 0l.006-.117V11.5l-.007-.117A1 1 0 0 0 12 10.499Zm0-3.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5Z"/></svg>';
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return "";
+            const div = document.createElement("div");
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ─── Render ──────────────────────────────────────────
+        function renderCards(cards, oppName) {
+            const countEl = document.getElementById("notif-count");
+            const listEl = document.getElementById("cards-list");
+
+            const count = cards.length;
+            countEl.textContent = count + (count === 1 ? " reminder" : " reminders");
+            listEl.innerHTML = "";
+
+            cards.forEach(card => {
+                const typeInfo = getCardTypeInfo(card.cardtype);
+                const title = card.title || typeInfo.title;
+                const desc = card.description || "";
+
+                const item = document.createElement("div");
+                item.className = "card-item";
+                item.innerHTML = `
+                    <div class="card-type-icon ${typeInfo.css}">
+                        ${getCardIcon(typeInfo.icon)}
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">${escapeHtml(title)}</div>
+                        ${desc ? `<div class="card-desc">${escapeHtml(desc)}</div>` : ""}
+                        <div class="card-opp-name">
+                            <svg class="opp-icon" viewBox="0 0 24 24" fill="#9e9e9e"><path d="M6.75 3A3.75 3.75 0 0 0 3 6.75v10.5A3.75 3.75 0 0 0 6.75 21h10.5A3.75 3.75 0 0 0 21 17.25V6.75A3.75 3.75 0 0 0 17.25 3H6.75Z"/></svg>
+                            ${escapeHtml(oppName)}
+                        </div>
+                    </div>
+                `;
+                listEl.appendChild(item);
+            });
+
+            // Default expanded when there are cards
+            if (count > 0) {
+                listEl.classList.add("open");
+                document.getElementById("chevron").classList.add("open");
+            }
+        }
+
+        // ─── Toggle ──────────────────────────────────────────
+        function setupToggle() {
+            document.getElementById("notif-toggle").addEventListener("click", function () {
+                const list = document.getElementById("cards-list");
+                const chev = document.getElementById("chevron");
+                list.classList.toggle("open");
+                chev.classList.toggle("open");
+            });
+        }
+
+        // ─── Main ────────────────────────────────────────────
+        async function init() {
+            crmBaseUrl = getCrmBaseUrl();
+            opportunityId = getOpportunityIdFromContext();
+
+            if (!opportunityId) {
+                showError("Could not determine the opportunity ID from the form context.");
+                return;
+            }
+
+            try {
+                // Get opportunity name and close date
+                const opp = await crmApiFetch(
+                    `/opportunities(${opportunityId})?$select=name,estimatedclosedate`
+                );
+                const oppName = opp.name || "Opportunity";
+
+                // Get action cards for this opportunity
+                const cards = await crmApiFetch(
+                    `/actioncards?$filter=_regardingobjectid_value eq '${opportunityId}'&$orderby=createdon desc&$top=20`
+                );
+
+                document.getElementById("loading").style.display = "none";
+
+                if (!cards.value || cards.value.length === 0) {
+                    // Check if close date has passed — generate a synthetic card
+                    const closeDateStr = opp.estimatedclosedate;
+                    const synthCards = [];
+                    if (closeDateStr) {
+                        const closeDate = new Date(closeDateStr);
+                        if (closeDate < new Date()) {
+                            synthCards.push({
+                                cardtype: 16,
+                                title: "Opportunity's close date has passed",
+                                description: null,
+                            });
+                        }
+                    }
+
+                    if (synthCards.length === 0) {
+                        document.getElementById("empty").style.display = "block";
+                        return;
+                    }
+
+                    document.getElementById("content").style.display = "block";
+                    setupToggle();
+                    renderCards(synthCards, oppName);
+                    return;
+                }
+
+                document.getElementById("content").style.display = "block";
+                setupToggle();
+                renderCards(cards.value, oppName);
+
+            } catch (err) {
+                showError("Error loading assistant: " + err.message);
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("error").style.display = "block";
+            document.getElementById("error-msg").textContent = msg;
+        }
+
+        // Start
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>
