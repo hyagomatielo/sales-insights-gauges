@@ -72,14 +72,20 @@
         /* ─── Score Display ─── */
         .score-section {
             display: flex;
-            align-items: center;
-            gap: 14px;
+            align-items: flex-start;
+            gap: 12px;
             margin-bottom: 8px;
+        }
+        .score-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
         }
         .gauge-wrapper {
             position: relative;
-            width: 72px;
-            height: 72px;
+            width: 64px;
+            height: 64px;
             flex-shrink: 0;
         }
         .gauge-svg {
@@ -103,14 +109,14 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 700;
             line-height: 1;
             color: var(--text);
         }
 
         .score-meta {
-            padding-top: 0;
+            padding-top: 2px;
         }
         .grade-label {
             font-size: 14px;
@@ -128,19 +134,28 @@
         .trend-arrow {
             font-size: 12px;
         }
+
+        /* ─── Insights (right column) ─── */
+        .score-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 64px;
+        }
         .trend-arrow.up { color: var(--accent-green); }
         .trend-arrow.down { color: var(--accent-red); }
         .trend-arrow.steady { color: var(--text-secondary); }
 
         /* ─── Insights ─── */
         .insights {
-            margin-bottom: 6px;
+            margin-bottom: 0;
         }
         .insight-row {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 6px;
-            padding: 3px 0;
+            padding: 2px 0;
             font-size: 13px;
             color: var(--text);
             line-height: 1.4;
@@ -149,6 +164,7 @@
             flex-shrink: 0;
             width: 0;
             height: 0;
+            margin-top: 5px;
         }
         .insight-icon.positive {
             border-left: 5px solid transparent;
@@ -271,24 +287,27 @@
         </div>
 
         <div class="score-section">
-            <div class="gauge-wrapper">
-                <svg class="gauge-svg" viewBox="0 0 100 100">
-                    <circle class="gauge-bg" cx="50" cy="50" r="42" />
-                    <circle id="gauge-fill" class="gauge-fill" cx="50" cy="50" r="42"
-                        stroke-dasharray="263.9" stroke-dashoffset="263.9" />
-                </svg>
-                <div id="gauge-score" class="gauge-score">--</div>
-            </div>
-            <div class="score-meta">
-                <div id="grade-label" class="grade-label">--</div>
-                <div id="trend-label" class="trend-label">
-                    <span id="trend-arrow" class="trend-arrow"></span>
-                    <span id="trend-text"></span>
+            <div class="score-left">
+                <div class="gauge-wrapper">
+                    <svg class="gauge-svg" viewBox="0 0 100 100">
+                        <circle class="gauge-bg" cx="50" cy="50" r="42" />
+                        <circle id="gauge-fill" class="gauge-fill" cx="50" cy="50" r="42"
+                            stroke-dasharray="263.9" stroke-dashoffset="263.9" />
+                    </svg>
+                    <div id="gauge-score" class="gauge-score">--</div>
+                </div>
+                <div class="score-meta">
+                    <div id="grade-label" class="grade-label">--</div>
+                    <div id="trend-label" class="trend-label">
+                        <span id="trend-arrow" class="trend-arrow"></span>
+                        <span id="trend-text"></span>
+                    </div>
                 </div>
             </div>
+            <div class="score-right">
+                <div id="insights" class="insights"></div>
+            </div>
         </div>
-
-        <div id="insights" class="insights"></div>
 
         <div class="details-link">
             <a id="details-btn" href="javascript:void(0)">Details</a>
