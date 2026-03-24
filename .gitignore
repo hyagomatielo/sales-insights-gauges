@@ -1,3 +1,6 @@
 node_modules/
 .msal-cache.json
 deploy-log.txt
+deploy.js
+package.json
+package-lock.json
