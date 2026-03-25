@@ -2,6 +2,12 @@
 
 A set of three lightweight web resource widgets designed to surface Sales Insights data directly on the Opportunity form in Microsoft Dynamics 365.
 
+## Screenshots
+
+| Widgets | Embedded in Dynamics 365 |
+|:-------:|:------------------------:|
+| ![Widgets](img/widgets.png) | ![Embedded](img/embedded-in-d365.png) |
+
 ## Widgets
 
 ### Opportunity Score (`opportunity-score.html`)
